@@ -1,51 +1,48 @@
 # Archivo base para backend/models.py
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Numeric
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 import datetime
 from .database import Base
 
-class Usuario(Base):
-    __tablename__ = "usuarios"
+class User(Base):
+    __tablename__ = "users"
+
     id = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String(100), nullable=False)
-    email = Column(String(100), unique=True, index=True, nullable=False)
-    fecha_registro = Column(DateTime, default=datetime.datetime.utcnow)
+    username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
 
-class Categoria(Base):
-    __tablename__ = "categorias"
+class Store(Base):
+    __tablename__ = "stores"
+
     id = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String(100), unique=True, nullable=False)
+    name = Column(String, index=True, nullable=False)
+    address = Column(String, nullable=True)
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
 
-class Producto(Base):
-    __tablename__ = "productos"
+    # Relación con los precios
+    prices = relationship("StoreProduct", back_populates="store")
+
+class Product(Base):
+    __tablename__ = "products"
+
     id = Column(Integer, primary_key=True, index=True)
-    categoria_id = Column(Integer, ForeignKey("categorias.id", ondelete="CASCADE"), nullable=False)
-    nombre = Column(String(150), index=True, nullable=False)
-    marca = Column(String(100))
-    
-    precios = relationship("PrecioProducto", back_populates="producto")
+    name = Column(String, index=True, nullable=False)
+    brand = Column(String, index=True, nullable=True)
+    category = Column(String, index=True, nullable=True)
 
-class Tienda(Base):
-    __tablename__ = "tiendas"
+    # Relación con los precios
+    store_prices = relationship("StoreProduct", back_populates="product")
+
+class StoreProduct(Base):
+    __tablename__ = "store_products"
+
     id = Column(Integer, primary_key=True, index=True)
-    geoapify_id = Column(String(200), unique=True, index=True, nullable=True) # ID de la API externa
-    nombre = Column(String(150), nullable=False)
-    direccion = Column(String(250))
-    latitud = Column(Float, nullable=False)
-    longitud = Column(Float, nullable=False)
+    store_id = Column(Integer, ForeignKey("stores.id"), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    price = Column(Float, nullable=False)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
-    precios = relationship("PrecioProducto", back_populates="tienda")
-
-class PrecioProducto(Base):
-    __tablename__ = "precios_productos"
-    id = Column(Integer, primary_key=True, index=True)
-    producto_id = Column(Integer, ForeignKey("productos.id", ondelete="CASCADE"), nullable=False)
-    tienda_id = Column(Integer, ForeignKey("tiendas.id", ondelete="CASCADE"), nullable=False)
-    usuario_id = Column(Integer, ForeignKey("usuarios.id", ondelete="SET NULL"), nullable=True)
-    
-    # Numeric(10,2) guarda números exactos como 1250.50 sin perder precisión decimal
-    precio = Column(Numeric(10, 2), nullable=False) 
-    fecha_actualizacion = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
-
-    producto = relationship("Producto", back_populates="precios")
-    tienda = relationship("Tienda", back_populates="precios")
+    # Relaciones inversas
+    store = relationship("Store", back_populates="prices")
+    product = relationship("Product", back_populates="store_prices")
