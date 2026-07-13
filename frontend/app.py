@@ -16,7 +16,7 @@
 
 import streamlit as st
 from utils import obtener_tiendas, backend_esta_disponible
-from components import render_header
+from elements.header import render_header
 
 st.set_page_config(
     page_title="MapLab - Comparador de precios",

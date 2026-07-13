@@ -1,82 +1,31 @@
-# frontend/components.py
+# frontend/pages/1_Comparar_Precios.py
 #
-# Componentes de interfaz compartidos entre páginas de MapLab.
+# Página de EJEMPLO para mostrar cómo se reutiliza el header en otra
+# "rama" de la app. Streamlit detecta automáticamente cualquier
+# archivo .py dentro de frontend/pages/ y lo agrega como una página
+# nueva (con su propio menú en la barra lateral), sin que haya que
+# registrarla en ningún lado.
 #
-# La idea es que cada página (app.py y todo lo que pongas dentro de
-# frontend/pages/) importe render_header() y lo llame al inicio, en vez
-# de repetir el HTML/CSS del header en cada archivo.
+# El número al inicio del nombre del archivo ("1_") solo define el
+# orden en el menú lateral; no afecta el código.
 
 import streamlit as st
+from elements.header import render_header
 
+st.set_page_config(
+    page_title="MapLab - Comparar precios",
+    page_icon="🗺️",
+    layout="wide",
+)
 
-def render_header(pagina_home: str = "app.py"):
-    """
-    Dibuja el header de MapLab: logo, botón cuadrado para volver al
-    home, y un buscador de productos/tiendas.
+# Mismo header que en app.py, convocado desde components.py
+busqueda = render_header()
 
-    Parámetros
-    ----------
-    pagina_home : str
-        Ruta del archivo que representa el "Home" de la app, tal como
-        Streamlit lo espera en st.switch_page(). Para la página
-        principal es "app.py". Si algún día renombran el archivo
-        principal, solo hay que actualizar este valor por defecto.
+st.subheader("Comparar precios")
+st.write(
+    "Esta es una página de ejemplo para mostrar que el header se "
+    "reutiliza igual en cualquier rama de la app."
+)
 
-    Devuelve
-    --------
-    str
-        El texto que el usuario haya escrito en el buscador (puede
-        estar vacío). También queda guardado en
-        st.session_state["busqueda"] para que cualquier página lo pueda
-        leer sin tener que pasarse el valor entre archivos.
-    """
-
-    st.markdown(
-        """
-        <style>
-            .maplab-header-bar {
-                background-color: #1E3A5F;
-                padding: 0.8rem 1.5rem;
-                border-radius: 10px;
-                margin-bottom: 1.5rem;
-            }
-            div[data-testid="stHorizontalBlock"] .stButton button {
-                background-color: #FFFFFF;
-                border: none;
-                font-size: 1.1rem;
-                padding: 0.35rem 0.7rem;
-            }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    with st.container():
-        st.markdown('<div class="maplab-header-bar">', unsafe_allow_html=True)
-        col_home, col_buscador, col_logo = st.columns([0.08, 0.62, 0.30])
-
-        with col_home:
-            # Botón cuadrado -> regresa al home.
-            # Cambia el emoji si más adelante quieren un ícono distinto
-            # (por ejemplo "🏠"), la lógica de navegación no cambia.
-            if st.button("⬜", key="btn_home", help="Ir al inicio"):
-                st.switch_page(pagina_home)
-
-        with col_buscador:
-            busqueda = st.text_input(
-                "Buscar",
-                placeholder="Buscar producto o tienda...",
-                label_visibility="collapsed",
-                key="header_busqueda",
-            )
-
-        with col_logo:
-            st.markdown(
-                "<h3 style='color:white; margin:0;'>🗺️ MapLab</h3>",
-                unsafe_allow_html=True,
-            )
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    st.session_state["busqueda"] = busqueda
-    return busqueda
+if busqueda:
+    st.info(f"Buscando: **{busqueda}** (todavía sin conectar a resultados reales)")
