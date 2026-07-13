@@ -31,10 +31,64 @@ def listar_productos(db: Session = Depends(get_db)):
     return db.query(models.Producto).all()
 
 
+# --- Registrar un producto nuevo (ej. el usuario está en la tienda y no existe en el catálogo) ---
+@app.post("/productos", response_model=schemas.ProductoOut, status_code=201)
+def crear_producto(datos: schemas.ProductoCreate, db: Session = Depends(get_db)):
+    categoria = db.get(models.Categoria, datos.categoria_id)
+    if categoria is None:
+        raise HTTPException(status_code=404, detail=f"No existe una categoría con id {datos.categoria_id}")
+
+    ya_existe = (
+        db.query(models.Producto)
+        .filter(
+            func.lower(models.Producto.nombre) == datos.nombre.lower(),
+            models.Producto.categoria_id == datos.categoria_id,
+        )
+        .first()
+    )
+    if ya_existe:
+        raise HTTPException(status_code=409, detail=f"Ya existe el producto '{datos.nombre}' en esa categoría")
+
+    producto = models.Producto(nombre=datos.nombre, marca=datos.marca, categoria_id=datos.categoria_id)
+    db.add(producto)
+    db.commit()
+    db.refresh(producto)
+    return producto
+
+
+# --- Listar categorías (para el formulario de "producto nuevo" en el frontend) ---
+@app.get("/categorias", response_model=List[schemas.CategoriaOut])
+def listar_categorias(db: Session = Depends(get_db)):
+    return db.query(models.Categoria).all()
+
+
 # --- Endpoint simple: listar tiendas (el frontend ya lo consume en utils.py) ---
 @app.get("/tiendas", response_model=List[schemas.TiendaOut])
 def listar_tiendas(db: Session = Depends(get_db)):
     return db.query(models.Tienda).all()
+
+
+# --- Registrar una tienda nueva (ej. el usuario está físicamente ahí y no existe en el sistema) ---
+@app.post("/tiendas", response_model=schemas.TiendaOut, status_code=201)
+def crear_tienda(datos: schemas.TiendaCreate, db: Session = Depends(get_db)):
+    if not (-90 <= datos.latitud <= 90) or not (-180 <= datos.longitud <= 180):
+        raise HTTPException(status_code=422, detail="Latitud/longitud fuera de rango")
+
+    ya_existe = db.query(models.Tienda).filter(func.lower(models.Tienda.nombre) == datos.nombre.lower()).first()
+    if ya_existe:
+        raise HTTPException(status_code=409, detail=f"Ya existe una tienda registrada como '{datos.nombre}'")
+
+    tienda = models.Tienda(
+        nombre=datos.nombre,
+        direccion=datos.direccion,
+        latitud=datos.latitud,
+        longitud=datos.longitud,
+        geoapify_id=datos.geoapify_id,
+    )
+    db.add(tienda)
+    db.commit()
+    db.refresh(tienda)
+    return tienda
 
 
 # --- Registro simple de usuario (sin contraseña por ahora) ---
