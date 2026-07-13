@@ -1,15 +1,17 @@
-# frontend/elementos/header.py
+# frontend/elements/header.py
 #
-# Componentes de interfaz compartidos entre páginas de MapLab.
+# Header reutilizable de MapLab.
 #
 # La idea es que cada página (app.py y todo lo que pongas dentro de
-# frontend/pages/) importe render_header() y lo llame al inicio, en vez
-# de repetir el HTML/CSS del header en cada archivo.
+# frontend/pages/) haga:
+#     from elements.header import render_header
+# y lo llame al inicio, en vez de repetir el HTML/CSS del header en
+# cada archivo.
 
 import streamlit as st
 
 
-def render_header(pagina_home: str = "app.py"):
+def render_header(pagina_home: str = "pages/home.py"):
     """
     Dibuja el header de MapLab: logo, botón cuadrado para volver al
     home, y un buscador de productos/tiendas.
@@ -18,9 +20,9 @@ def render_header(pagina_home: str = "app.py"):
     ----------
     pagina_home : str
         Ruta del archivo que representa el "Home" de la app, tal como
-        Streamlit lo espera en st.switch_page(). Para la página
-        principal es "app.py". Si algún día renombran el archivo
-        principal, solo hay que actualizar este valor por defecto.
+        Streamlit lo espera en st.switch_page(). Por defecto apunta a
+        "pages/home.py", que es donde vive la vista Home. Si algún día
+        mueven ese archivo, solo hay que actualizar este valor.
 
     Devuelve
     --------
