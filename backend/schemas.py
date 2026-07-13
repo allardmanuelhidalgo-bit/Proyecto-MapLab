@@ -1,48 +1,121 @@
 # Archivo base para backend/schemas.py
-from pydantic import BaseModel
-from typing import Optional
+#
+# Estos son los "moldes" que FastAPI usa para convertir los objetos de la base
+# de datos (SQLAlchemy) en JSON que el frontend puede consumir, y viceversa.
+#
+# Convención usada en este archivo:
+#   - Los esquemas que terminan en "Out"    -> lo que el API DEVUELVE (lectura)
+#   - Los esquemas que terminan en "Create" -> lo que el API RECIBE (creación)
+
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
+from decimal import Decimal
+from typing import Optional
 
-# Esquemas para Producto
-class ProductBase(BaseModel):
-    name: str
-    brand: Optional[str] = None
-    category: Optional[str] = None
 
-class ProductCreate(ProductBase):
-    pass
+# ---------- Categoría ----------
 
-class ProductResponse(ProductBase):
+class CategoriaOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
-    class Config:
-        from_attributes = True
+    nombre: str
 
-# Esquemas para Tienda
-class StoreBase(BaseModel):
-    name: str
-    address: Optional[str] = None
-    latitude: float
-    longitude: float
 
-class StoreCreate(StoreBase):
-    pass
+# ---------- Producto ----------
 
-class StoreResponse(StoreBase):
+class ProductoOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
-    class Config:
-        from_attributes = True
+    nombre: str
+    marca: Optional[str] = None
+    categoria_id: int
 
-# Esquema para Registrar Precio Manual
-class PriceCreate(BaseModel):
-    store_id: int
-    product_id: int
-    price: float
 
-# Esquema para la Respuesta de la Comparación
-class ComparisonResult(BaseModel):
-    product_name: str
-    brand: Optional[str]
-    store_name: str
-    price: float
-    distance_km: float
-    updated_at: datetime
+class ProductoCreate(BaseModel):
+    nombre: str
+    marca: Optional[str] = None
+    categoria_id: int
+
+
+# ---------- Tienda ----------
+
+class TiendaOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    nombre: str
+    direccion: Optional[str] = None
+    latitud: float
+    longitud: float
+
+
+class TiendaCreate(BaseModel):
+    nombre: str
+    direccion: Optional[str] = None
+    latitud: float
+    longitud: float
+    geoapify_id: Optional[str] = None
+
+
+# ---------- Precio ----------
+
+class PrecioProductoOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    producto_id: int
+    tienda_id: int
+    precio: Decimal
+    fecha_actualizacion: datetime
+
+
+class PrecioProductoCreate(BaseModel):
+    producto_id: int
+    tienda_id: int
+    precio: Decimal
+    usuario_id: Optional[int] = None
+
+
+# ---------- Esquemas combinados (para las respuestas de comparación) ----------
+# Estos son los que usarán los endpoints de los RF1 y RF2: no representan una
+# tabla 1 a 1, sino la forma final del JSON que el frontend necesita mostrar.
+
+class PrecioEnTienda(BaseModel):
+    """Precio de UN producto en UNA tienda específica, con la distancia
+    al usuario ya calculada. Es la pieza base de la comparación (RF2)."""
+    model_config = ConfigDict(from_attributes=True)
+
+    tienda_id: int
+    tienda_nombre: str
+    direccion: Optional[str] = None
+    precio: Decimal
+    distancia_km: Optional[float] = None  # se calcula en el backend, no viene de la tabla
+
+
+class ProductoConPrecios(BaseModel):
+    """Respuesta principal para 'buscar un producto y comparar precios'
+    (RF1 + RF2 juntos): el producto y su precio en cada tienda cercana."""
+    model_config = ConfigDict(from_attributes=True)
+
+    producto_id: int
+    producto_nombre: str
+    marca: Optional[str] = None
+    precios: list[PrecioEnTienda]
+
+
+# ---------- Usuario (opcional, solo si el equipo decide usar login) ----------
+
+class UsuarioOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    nombre: str
+    email: str
+    fecha_registro: datetime
+
+
+class UsuarioCreate(BaseModel):
+    nombre: str
+    email: str
