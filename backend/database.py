@@ -15,10 +15,8 @@ DATABASE_URL = os.getenv(
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
 Base = declarative_base()
 
-# Dependencia para obtener la sesión de la BD en los endpoints
 def get_db():
     db = SessionLocal()
     try:
