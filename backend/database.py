@@ -12,7 +12,7 @@ DATABASE_URL = os.getenv(
     "DATABASE_URL", 
     "postgresql://postgres:password@localhost:5432/comparador_db"
 )
-
+DATABASE_URL = "sqlite:///./test.db"
 # Creamos el motor de base de datos específico para PostgreSQL
 engine = create_engine(
     DATABASE_URL,
