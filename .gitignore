@@ -8,6 +8,11 @@ pyvenv.cfg
 __pycache__/
 *.pyc
 
+#Por seguridad
+.env
+.env.*
+!.env.example
+
 # Carpetas del sistema o de VS Code
 .vscode/
 .DS_Store
