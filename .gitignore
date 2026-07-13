@@ -4,6 +4,11 @@ venv/
 env/
 pyvenv.cfg
 
+#Seguridad
+.env
+.env.*
+!.env.example
+
 # Archivos de caché de Python
 __pycache__/
 *.pyc
