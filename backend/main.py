@@ -77,6 +77,8 @@ def comparar_producto(
                 tienda_id=tienda.id,
                 tienda_nombre=tienda.nombre,
                 direccion=tienda.direccion,
+                latitud=tienda.latitud,
+                longitud=tienda.longitud,
                 precio=registro.precio,
                 distancia_km=round(distancia_km, 2),
             )

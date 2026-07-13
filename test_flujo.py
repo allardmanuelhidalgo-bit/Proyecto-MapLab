@@ -56,7 +56,7 @@ if r.status_code == 200:
         check("Los precios vienen ordenados por cercanía (más cerca primero)", distancias == sorted(distancias))
 
         primero = data["precios"][0]
-        campos_esperados = {"tienda_id", "tienda_nombre", "direccion", "precio", "distancia_km"}
+        campos_esperados = {"tienda_id", "tienda_nombre", "direccion", "latitud", "longitud", "precio", "distancia_km"}
         check("Cada tienda en 'precios' trae todos los campos esperados", campos_esperados.issubset(primero.keys()))
 
 # --- Prueba 3: GET /productos/comparar con un producto que NO existe ---

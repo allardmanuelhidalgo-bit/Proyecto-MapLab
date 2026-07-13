@@ -49,6 +49,8 @@ GET /productos/comparar?nombre=leche&lat=8.4283&lon=-82.4400
       "tienda_id": 2,
       "tienda_nombre": "Super 99 David",
       "direccion": "Calle F Sur, San Mateo, David, Chiriquí",
+      "latitud": 8.4280232,
+      "longitud": -82.4370701,
       "precio": 1.35,
       "distancia_km": 0.32
     },
@@ -56,6 +58,8 @@ GET /productos/comparar?nombre=leche&lat=8.4283&lon=-82.4400
       "tienda_id": 1,
       "tienda_nombre": "Súper Xtra David",
       "direccion": "Urbanización Brisas Davideñas, David, Chiriquí",
+      "latitud": 8.4286421,
+      "longitud": -82.4442399,
       "precio": 1.25,
       "distancia_km": 0.47
     }

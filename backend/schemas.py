@@ -90,6 +90,8 @@ class PrecioEnTienda(BaseModel):
     tienda_id: int
     tienda_nombre: str
     direccion: Optional[str] = None
+    latitud: float
+    longitud: float
     precio: Decimal
     distancia_km: Optional[float] = None  # se calcula en el backend, no viene de la tabla
 
