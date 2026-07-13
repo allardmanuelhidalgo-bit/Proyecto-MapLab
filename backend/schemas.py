@@ -68,7 +68,7 @@ class PrecioProductoOut(BaseModel):
     producto_id: int
     tienda_id: int
     precio: Decimal
-    fecha_actualizacion: datetime
+    fecha_registro: datetime
 
 
 class PrecioProductoCreate(BaseModel):
@@ -76,6 +76,51 @@ class PrecioProductoCreate(BaseModel):
     tienda_id: int
     precio: Decimal
     usuario_id: Optional[int] = None
+
+
+# ---------- Voto ----------
+# Un cliente vota si un PrecioProducto (un reporte de precio) es cierto o
+# falso. Sin autenticación todavía, así que el usuario_id se manda en el
+# body; el día que haya login real, esto se reemplaza por el usuario de la
+# sesión y ya no hace falta que el cliente lo declare.
+
+class VotoCreate(BaseModel):
+    usuario_id: int
+    es_verdadero: bool
+
+
+class VotoOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    precio_id: int
+    usuario_id: int
+    es_verdadero: bool
+    fecha_voto: datetime
+
+
+# ---------- Lista personal de productos ----------
+
+class ItemListaCreate(BaseModel):
+    usuario_id: int
+    producto_id: int
+
+
+class ItemListaOut(BaseModel):
+    """Trae los datos del producto ya incluidos (nombre, marca) para que el
+    frontend no tenga que hacer una segunda consulta por cada item."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    producto_id: int
+    producto_nombre: str
+    marca: Optional[str] = None
+    comprado: bool
+    fecha_agregado: datetime
+
+
+class ItemListaActualizar(BaseModel):
+    comprado: bool
 
 
 # ---------- Esquemas combinados (para las respuestas de comparación) ----------
@@ -87,10 +132,16 @@ class PrecioEnTienda(BaseModel):
     al usuario ya calculada. Es la pieza base de la comparación (RF2)."""
     model_config = ConfigDict(from_attributes=True)
 
+    precio_id: int  # id del reporte de precio; el frontend lo necesita para poder votar (POST /precios/{precio_id}/votar)
     tienda_id: int
     tienda_nombre: str
     direccion: Optional[str] = None
+    latitud: float
+    longitud: float
     precio: Decimal
+    fecha_registro: datetime
+    votos_a_favor: int = 0
+    votos_en_contra: int = 0
     distancia_km: Optional[float] = None  # se calcula en el backend, no viene de la tabla
 
 

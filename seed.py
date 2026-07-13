@@ -6,7 +6,7 @@ Uso:
     python seed.py
 """
 from backend.database import SessionLocal, engine, Base
-from backend.models import Categoria, Producto, Tienda, PrecioProducto
+from backend.models import Categoria, Producto, Tienda, PrecioProducto, Usuario, Voto
 
 # Nos aseguramos de que las tablas existan antes de insertar
 Base.metadata.create_all(bind=engine)
@@ -75,11 +75,28 @@ try:
         (productos[6], tienda_99, 5.40),
     ]
 
+    filas_precio = []
     for producto, tienda, precio in precios:
-        db.add(PrecioProducto(producto_id=producto.id, tienda_id=tienda.id, precio=precio))
+        fila = PrecioProducto(producto_id=producto.id, tienda_id=tienda.id, precio=precio)
+        db.add(fila)
+        filas_precio.append(fila)
 
     db.commit()
-    print("Listo: categorías, productos, tiendas y precios de prueba insertados.")
+
+    # --- Usuarios y votos de ejemplo (para poder probar /votar de una vez) ---
+    usuario_ana = Usuario(nombre="Ana Pérez", email="ana@example.com")
+    usuario_luis = Usuario(nombre="Luis Gómez", email="luis@example.com")
+    db.add_all([usuario_ana, usuario_luis])
+    db.commit()
+
+    # Ambos votan sobre el primer precio registrado (leche en Súper Xtra)
+    db.add_all([
+        Voto(precio_id=filas_precio[0].id, usuario_id=usuario_ana.id, es_verdadero=True),
+        Voto(precio_id=filas_precio[0].id, usuario_id=usuario_luis.id, es_verdadero=True),
+    ])
+    db.commit()
+
+    print("Listo: categorías, productos, tiendas, precios, usuarios y votos de prueba insertados.")
 
 except Exception as e:
     db.rollback()
