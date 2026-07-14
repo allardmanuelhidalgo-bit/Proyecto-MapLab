@@ -12,3 +12,6 @@ __pycache__/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Variables de entorno (contiene credenciales, nunca se sube)
+.env
