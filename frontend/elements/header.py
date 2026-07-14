@@ -9,6 +9,36 @@
 # cada archivo.
 
 import streamlit as st
+from utils import usuario_actual, identificarse, cerrar_sesion
+
+
+def _render_identificacion():
+    """Pequeño panel para crear/mostrar el usuario actual (sin contraseña).
+    Varios endpoints del backend (votar, reportar precio, lista personal)
+    necesitan un usuario_id, así que esto vive en el header para estar
+    disponible en cualquier página."""
+    usuario = usuario_actual()
+
+    if usuario:
+        with st.popover(f"👤 {usuario['nombre']}", use_container_width=True):
+            st.caption(usuario["email"])
+            if st.button("Cerrar sesión", key="btn_cerrar_sesion"):
+                cerrar_sesion()
+                st.rerun()
+    else:
+        with st.popover("👤 Identificarme", use_container_width=True):
+            st.caption("Necesario para votar, reportar precios o tener una lista personal.")
+            nombre = st.text_input("Nombre", key="id_nombre")
+            email = st.text_input("Email", key="id_email")
+            if st.button("Continuar", key="btn_identificarse"):
+                if not nombre or not email:
+                    st.warning("Completa nombre y email.")
+                else:
+                    ok, msg = identificarse(nombre, email)
+                    if ok:
+                        st.rerun()
+                    else:
+                        st.error(msg)
 
 
 def render_header(pagina_home: str = "pages/home.py"):
@@ -55,7 +85,7 @@ def render_header(pagina_home: str = "pages/home.py"):
 
     with st.container():
         st.markdown('<div class="maplab-header-bar">', unsafe_allow_html=True)
-        col_home, col_buscador, col_logo = st.columns([0.08, 0.62, 0.30])
+        col_home, col_buscador, col_logo, col_usuario = st.columns([0.08, 0.5, 0.20, 0.22])
 
         with col_home:
             # Botón cuadrado -> regresa al home.
@@ -77,6 +107,9 @@ def render_header(pagina_home: str = "pages/home.py"):
                 "<h3 style='color:white; margin:0;'>🗺️ MapLab</h3>",
                 unsafe_allow_html=True,
             )
+
+        with col_usuario:
+            _render_identificacion()
 
         st.markdown("</div>", unsafe_allow_html=True)
 
