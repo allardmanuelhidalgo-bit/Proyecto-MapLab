@@ -12,3 +12,7 @@ __pycache__/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Archivos de configuración de entorno, no se pone 
+.env
+
