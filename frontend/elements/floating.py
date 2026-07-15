@@ -42,7 +42,9 @@ def inyectar_estilos_flotantes(paneles: dict[str, str], alto_mapa_px: int = 600)
             border-radius: 12px;
             padding: 0.6rem 0.8rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.18);
-            max-width: 320px;
+            max-width: 340px;
+            max-height: 75%;
+            overflow-y: auto;
         }}
         """
         for key, pos in paneles.items()

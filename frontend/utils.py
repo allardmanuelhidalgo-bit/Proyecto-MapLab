@@ -1,12 +1,13 @@
 # frontend/utils.py
 """
-Funciones de apoyo para el frontend de MapLab.
+Funciones de apoyo para el frontend de MapLab (versión de una sola vista).
 
-Incluye:
+Incluye únicamente lo que la vista Home necesita:
 - La URL del backend (configurable por variable de entorno).
 - Geolocalización del usuario (vía JS del navegador, cacheada en session_state).
-- Identificación simple de usuario (sin contraseña) para poder votar/reportar/listar.
-- Wrappers de cada endpoint del backend que el frontend necesita consumir.
+- Listado de tiendas para dibujar el mapa.
+- Comparar precios de un producto entre tiendas cercanas (RF1 + RF2).
+- Cálculo de ruta (OSRM) desde el usuario hasta una tienda.
 """
 
 import os
@@ -75,7 +76,7 @@ def backend_esta_disponible() -> bool:
 # si la consigue, la agrega como query params (?lat=..&lon=..) a la URL
 # de la página. Streamlit los puede leer con st.query_params. Una vez
 # leídos, los guardamos en session_state para no repetir el permiso en
-# cada página.
+# cada rerun.
 
 def solicitar_ubicacion_navegador():
     """Dispara el pedido de geolocalización del navegador (silencioso)."""
@@ -135,74 +136,11 @@ def ubicacion_es_real() -> bool:
 
 
 # ---------------------------------------------------------------------
-# USUARIO (sin contraseña, solo nombre + email)
+# COMPARAR PRECIOS (RF1 + RF2)
 # ---------------------------------------------------------------------
-
-def usuario_actual() -> dict | None:
-    return st.session_state.get("usuario")
-
-
-def identificarse(nombre: str, email: str) -> tuple[bool, str]:
-    """
-    Crea el usuario en el backend (POST /usuarios) y lo guarda en
-    session_state. Como el backend no tiene login/GET-por-email, si el
-    email ya existe no hay forma de recuperar su id: se lo decimos al
-    usuario en vez de fallar en silencio.
-    """
-    try:
-        resp = requests.post(
-            f"{BACKEND_URL}/usuarios",
-            json={"nombre": nombre, "email": email},
-            timeout=5,
-        )
-        if resp.status_code == 201:
-            st.session_state["usuario"] = resp.json()
-            return True, "Listo."
-        if resp.status_code == 400:
-            return False, (
-                "Ese email ya está registrado de una sesión anterior. "
-                "El backend todavía no tiene un endpoint para 'iniciar sesión' "
-                "con un email existente (solo crear uno nuevo), así que por ahora "
-                "usa otro email para identificarte."
-            )
-        return False, f"Error inesperado ({resp.status_code}): {resp.text}"
-    except Exception as e:
-        return False, f"No se pudo conectar con el backend: {e}"
-
-
-def cerrar_sesion():
-    st.session_state.pop("usuario", None)
-
-
-# ---------------------------------------------------------------------
-# PRODUCTOS
-# ---------------------------------------------------------------------
-
-def listar_categorias() -> list[dict]:
-    try:
-        resp = requests.get(f"{BACKEND_URL}/categorias", timeout=5)
-        resp.raise_for_status()
-        return resp.json()
-    except Exception:
-        return []
-
-
-def crear_producto(nombre: str, categoria_id: int, marca: str | None = None) -> tuple[bool, dict | str]:
-    try:
-        resp = requests.post(
-            f"{BACKEND_URL}/productos",
-            json={"nombre": nombre, "categoria_id": categoria_id, "marca": marca},
-            timeout=5,
-        )
-        if resp.status_code == 201:
-            return True, resp.json()
-        return False, resp.json().get("detail", resp.text)
-    except Exception as e:
-        return False, str(e)
-
 
 def comparar_producto(nombre: str, lat: float, lon: float, limite: int = 5) -> tuple[bool, dict | str]:
-    """Llama a GET /productos/comparar (RF1 + RF2)."""
+    """Llama a GET /productos/comparar: precio + distancia por tienda cercana."""
     try:
         resp = requests.get(
             f"{BACKEND_URL}/productos/comparar",
@@ -215,107 +153,6 @@ def comparar_producto(nombre: str, lat: float, lon: float, limite: int = 5) -> t
     except Exception as e:
         return False, str(e)
 
-
-# ---------------------------------------------------------------------
-# TIENDAS (crear)
-# ---------------------------------------------------------------------
-
-def crear_tienda(nombre: str, direccion: str, lat: float, lon: float) -> tuple[bool, dict | str]:
-    try:
-        resp = requests.post(
-            f"{BACKEND_URL}/tiendas",
-            json={"nombre": nombre, "direccion": direccion, "latitud": lat, "longitud": lon},
-            timeout=5,
-        )
-        if resp.status_code == 201:
-            return True, resp.json()
-        return False, resp.json().get("detail", resp.text)
-    except Exception as e:
-        return False, str(e)
-
-
-# ---------------------------------------------------------------------
-# PRECIOS Y VOTOS
-# ---------------------------------------------------------------------
-
-def registrar_precio(producto_id: int, tienda_id: int, precio: float, usuario_id: int | None) -> tuple[bool, dict | str]:
-    try:
-        resp = requests.post(
-            f"{BACKEND_URL}/precios",
-            json={
-                "producto_id": producto_id,
-                "tienda_id": tienda_id,
-                "precio": precio,
-                "usuario_id": usuario_id,
-            },
-            timeout=5,
-        )
-        if resp.status_code == 201:
-            return True, resp.json()
-        return False, resp.json().get("detail", resp.text)
-    except Exception as e:
-        return False, str(e)
-
-
-def votar_precio(precio_id: int, usuario_id: int, es_verdadero: bool) -> tuple[bool, str]:
-    try:
-        resp = requests.post(
-            f"{BACKEND_URL}/precios/{precio_id}/votar",
-            json={"usuario_id": usuario_id, "es_verdadero": es_verdadero},
-            timeout=5,
-        )
-        if resp.status_code == 201:
-            return True, "¡Gracias por tu voto!"
-        return False, resp.json().get("detail", resp.text)
-    except Exception as e:
-        return False, str(e)
-
-
-# ---------------------------------------------------------------------
-# LISTA PERSONAL
-# ---------------------------------------------------------------------
-
-def obtener_lista(usuario_id: int) -> list[dict]:
-    try:
-        resp = requests.get(f"{BACKEND_URL}/listas/{usuario_id}", timeout=5)
-        resp.raise_for_status()
-        return resp.json()
-    except Exception:
-        return []
-
-
-def agregar_a_lista(usuario_id: int, producto_id: int) -> tuple[bool, str]:
-    try:
-        resp = requests.post(
-            f"{BACKEND_URL}/listas",
-            json={"usuario_id": usuario_id, "producto_id": producto_id},
-            timeout=5,
-        )
-        if resp.status_code == 201:
-            return True, "Agregado a tu lista."
-        return False, resp.json().get("detail", resp.text)
-    except Exception as e:
-        return False, str(e)
-
-
-def marcar_comprado(item_id: int, comprado: bool) -> bool:
-    try:
-        resp = requests.patch(
-            f"{BACKEND_URL}/listas/{item_id}",
-            json={"comprado": comprado},
-            timeout=5,
-        )
-        return resp.status_code == 200
-    except Exception:
-        return False
-
-
-def quitar_de_lista(item_id: int) -> bool:
-    try:
-        resp = requests.delete(f"{BACKEND_URL}/listas/{item_id}", timeout=5)
-        return resp.status_code == 204
-    except Exception:
-        return False
 
 # ---------------------------------------------------------------------
 # RUTAS (OSRM - motor de ruteo gratuito, sin API key)
