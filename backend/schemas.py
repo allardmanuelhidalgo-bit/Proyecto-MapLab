@@ -170,3 +170,15 @@ class UsuarioOut(BaseModel):
 class UsuarioCreate(BaseModel):
     nombre: str
     email: str
+
+# ---------- Notificación (generada por tareas asíncronas) ----------
+
+class NotificacionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    tipo: str
+    mensaje: str
+    producto_id: Optional[int] = None
+    tienda_id: Optional[int] = None
+    fecha_creacion: datetime

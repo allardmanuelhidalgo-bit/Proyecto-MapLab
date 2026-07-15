@@ -97,3 +97,15 @@ class ItemLista(Base):
 
     usuario = relationship("Usuario")
     producto = relationship("Producto")
+
+class Notificacion(Base):
+    """Notificación generada por una tarea en segundo plano (BackgroundTasks).
+    No bloquea la respuesta del endpoint que la generó: se crea DESPUÉS
+    de que el cliente ya recibió su respuesta HTTP."""
+    __tablename__ = "notificaciones"
+    id = Column(Integer, primary_key=True, index=True)
+    tipo = Column(String(50), nullable=False)  # ej: "precio_minimo", "reporte_sospechoso"
+    mensaje = Column(String(300), nullable=False)
+    producto_id = Column(Integer, ForeignKey("productos.id", ondelete="CASCADE"), nullable=True)
+    tienda_id = Column(Integer, ForeignKey("tiendas.id", ondelete="CASCADE"), nullable=True)
+    fecha_creacion = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)

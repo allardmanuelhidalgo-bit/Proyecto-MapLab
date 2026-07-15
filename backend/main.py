@@ -1,5 +1,5 @@
 # Archivo base para backend/main.py
-from fastapi import FastAPI, Depends, HTTPException, Query
+from fastapi import FastAPI, Depends, HTTPException, Query, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
@@ -9,6 +9,7 @@ from typing import List
 from .database import engine, Base, SessionLocal
 from . import models  # necesario: registra las tablas en Base.metadata
 from . import schemas
+from . import notificaciones
 
 # Crea las tablas si no existen (no borra ni toca las que ya están)
 Base.metadata.create_all(bind=engine)
@@ -110,7 +111,11 @@ def crear_usuario(datos: schemas.UsuarioCreate, db: Session = Depends(get_db)):
 # Cada llamada crea un reporte NUEVO (fila nueva), no sobreescribe uno
 # existente: así queda historial y cada reporte se puede votar por separado.
 @app.post("/precios", response_model=schemas.PrecioProductoOut, status_code=201)
-def registrar_precio(datos: schemas.PrecioProductoCreate, db: Session = Depends(get_db)):
+def registrar_precio(
+    datos: schemas.PrecioProductoCreate,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     producto = db.get(models.Producto, datos.producto_id)
     if producto is None:
         raise HTTPException(status_code=404, detail=f"No existe un producto con id {datos.producto_id}")
@@ -134,12 +139,18 @@ def registrar_precio(datos: schemas.PrecioProductoCreate, db: Session = Depends(
     db.add(nuevo_precio)
     db.commit()
     db.refresh(nuevo_precio)
+    background_tasks.add_task(notificaciones.procesar_nuevo_precio, nuevo_precio.id, db)
     return nuevo_precio
 
 
 # --- Un cliente vota si un reporte de precio es cierto o falso (1 voto por usuario) ---
 @app.post("/precios/{precio_id}/votar", response_model=schemas.VotoOut, status_code=201)
-def votar_precio(precio_id: int, datos: schemas.VotoCreate, db: Session = Depends(get_db)):
+def votar_precio(
+    precio_id: int,
+    datos: schemas.VotoCreate,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     precio = db.get(models.PrecioProducto, precio_id)
     if precio is None:
         raise HTTPException(status_code=404, detail=f"No existe un reporte de precio con id {precio_id}")
@@ -162,6 +173,7 @@ def votar_precio(precio_id: int, datos: schemas.VotoCreate, db: Session = Depend
         raise HTTPException(status_code=409, detail="Ya votaste sobre este reporte de precio")
 
     db.refresh(voto)
+    background_tasks.add_task(notificaciones.procesar_voto, precio_id, db)
     return voto
 
 
@@ -335,4 +347,14 @@ def comparar_producto(
         producto_nombre=producto.nombre,
         marca=producto.marca,
         precios=precios_mas_cercanos,
+    )
+
+# --- Consultar las notificaciones generadas por las tareas en segundo plano ---
+@app.get("/notificaciones", response_model=List[schemas.NotificacionOut])
+def listar_notificaciones(db: Session = Depends(get_db)):
+    return (
+        db.query(models.Notificacion)
+        .order_by(models.Notificacion.fecha_creacion.desc())
+        .limit(50)
+        .all()
     )
