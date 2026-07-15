@@ -210,6 +210,12 @@ header, footer, #MainMenu{
     margin-top:10px;
 }
 
+/* Titulo "Productos disponibles": mas separacion respecto a los chips
+   de abajo, para que no se vean pegados a la linea de color. */
+.section-productos{
+    margin-bottom:38px;
+}
+
 /* ---------- Tarjetas ---------- */
 .card{
     background:rgba(255,255,255,.66);
@@ -270,6 +276,10 @@ header, footer, #MainMenu{
 
 /* ---------- Botones de producto (chips) ---------- */
 .stButton button{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
     background:rgba(255,255,255,.75);
     border:1.5px solid rgba(37,99,235,.14) !important;
     border-radius:16px;
@@ -278,6 +288,11 @@ header, footer, #MainMenu{
     font-weight:600;
     transition:.22s ease;
     box-shadow:0 8px 22px rgba(37,99,235,.06);
+}
+
+.stButton button p{
+    text-align:center;
+    width:100%;
 }
 
 .stButton button:hover{
@@ -602,7 +617,7 @@ st.session_state.setdefault("lon_buscada", LON_REFERENCIA)
 productos = obtener_productos()
 
 if productos:
-    st.markdown('<div class="section">Productos disponibles</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section section-productos">Productos disponibles</div>', unsafe_allow_html=True)
 
     nombres = []
     for p in productos:
