@@ -55,24 +55,13 @@ def comparar_producto(nombre: str, lat: float, lon: float, limite: int = 2, time
 
     if resp.status_code == 200:
         return resp.json(), None
-
-    # Para cualquier código de error, intentamos rescatar el detalle real
-    # que manda el backend (FastAPI normalmente lo pone en resp.json()["detail"]).
-    # Si el cuerpo no es JSON válido, guardamos el texto crudo tal cual.
-    try:
-        detalle_real = resp.json().get("detail")
-    except ValueError:
-        detalle_real = resp.text.strip() if resp.text else None
-
-    if resp.status_code == 404:
-        mensaje = detalle_real or "No se encontraron resultados."
+    elif resp.status_code == 404:
+        try:
+            detalle = resp.json().get("detail", "No se encontraron resultados.")
+        except ValueError:
+            detalle = "No se encontraron resultados."
+        return None, detalle
     elif resp.status_code == 422:
-        mensaje = "Parámetros inválidos: revisa el nombre del producto y las coordenadas."
-        if detalle_real:
-            mensaje += f"\n\nDetalle: {detalle_real}"
+        return None, "Parámetros inválidos: revisa el nombre del producto y las coordenadas."
     else:
-        mensaje = f"Error inesperado del servidor (código {resp.status_code})."
-        if detalle_real:
-            mensaje += f"\n\nDetalle: {detalle_real}"
-
-    return None, mensaje
+        return None, f"Error inesperado del servidor (código {resp.status_code})."

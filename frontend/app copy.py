@@ -448,16 +448,7 @@ if resultado is None and error_msg is None:
             """, unsafe_allow_html=True)
 
 elif resultado is None:
-    # Si el mensaje trae un "Detalle:" (agregado por comparar_producto en utils.py),
-    # separamos la parte amigable de la técnica y mostramos esta última en un
-    # expander, para no saturar la pantalla pero sin perder el error real.
-    if "\n\nDetalle:" in error_msg:
-        mensaje_amigable, detalle_tecnico = error_msg.split("\n\nDetalle:", 1)
-        st.error(mensaje_amigable)
-        with st.expander("🔧 Ver detalle técnico del error"):
-            st.code(detalle_tecnico.strip())
-    else:
-        st.error(error_msg)
+    st.error(error_msg)
 
 else:
     precios = resultado.get("precios", [])
