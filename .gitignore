@@ -13,6 +13,9 @@ __pycache__/
 .env.*
 !.env.example
 
+.pytest_cache/ 
+*.db
+
 # Carpetas del sistema o de VS Code
 .vscode/
 .DS_Store
