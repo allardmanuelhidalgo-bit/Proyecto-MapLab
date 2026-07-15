@@ -39,7 +39,7 @@ def test_ver_lista_usuario_inexistente_da_404(client):
 
 
 def test_ver_lista_devuelve_items_mas_reciente_primero(client, usuario, db_session):
-    from backend import models
+    from backend_daza import models
 
     cat = models.Categoria(nombre="Bebidas")
     db_session.add(cat)

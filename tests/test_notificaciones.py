@@ -1,7 +1,7 @@
 # tests/test_notificaciones.py
 """Pruebas de las tareas asíncronas (BackgroundTasks) y GET /notificaciones."""
 
-from backend import models
+from backend_daza import models
 
 
 def test_no_hay_notificaciones_al_inicio(client):

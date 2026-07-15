@@ -5,8 +5,8 @@ Se corre UNA sola vez (o cada vez que se quiera resetear la data de ejemplo).
 Uso:
     python seed.py
 """
-from backend.database import SessionLocal, engine, Base
-from backend.models import Categoria, Producto, Tienda, PrecioProducto, Usuario, Voto
+from backend_daza.database import SessionLocal, engine, Base
+from backend_daza.models import Categoria, Producto, Tienda, PrecioProducto, Usuario, Voto
 
 # Nos aseguramos de que las tablas existan antes de insertar
 Base.metadata.create_all(bind=engine)

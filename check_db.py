@@ -2,8 +2,8 @@
 Diagnóstico rápido: confirma qué conexión se está usando y si de verdad
 llega a Neon. Correr con: python check_db.py
 """
-from backend.database import DATABASE_URL, engine, Base
-from backend import models  # necesario para que Base.metadata conozca las tablas
+from backend_daza.database import DATABASE_URL, engine, Base
+from backend_daza import models  # necesario para que Base.metadata conozca las tablas
 from sqlalchemy import inspect, text
 
 # 1. Mostrar qué URL se está usando realmente (ocultando la contraseña)

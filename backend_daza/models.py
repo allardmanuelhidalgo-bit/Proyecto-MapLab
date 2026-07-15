@@ -51,6 +51,12 @@ class PrecioProducto(Base):
     # producto/tienda, se crea una fila nueva. Por eso fecha_registro NO
     # lleva onupdate: es la fecha real en que ese reporte se creó, y nunca
     # cambia después (es lo que pide el RF de "saber cuándo se registró").
+    #
+    # NOTA: la columna física en la base de datos (Neon) se llama
+    # "fecha_actualizacion" por un cambio de nombre que no se migró. En vez
+    # de tocar la base de datos, mapeamos el atributo de Python
+    # "fecha_registro" (el nombre que usan main.py, schemas.py y los tests)
+    # a esa columna real con el primer argumento posicional de Column().
     fecha_registro = Column("fecha_actualizacion", DateTime, default=datetime.datetime.utcnow, nullable=False)
 
     producto = relationship("Producto", back_populates="precios")
