@@ -16,9 +16,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from backend_daza.database import Base
-from backend_daza.main import app, get_db
-from backend_daza import models
+from backend.database import Base
+from backend.main import app, get_db
+from backend import models
 
 # Motor de pruebas: SQLite en memoria, con StaticPool para que todas las
 # conexiones del pool compartan la MISMA base en memoria (si no, cada

@@ -1,5 +1,7 @@
 # Archivo base para backend/main.py
-from fastapi import FastAPI, Depends, HTTPException, Query
+import traceback
+from fastapi import FastAPI, Depends, HTTPException, Query, Request
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from geopy.distance import geodesic
@@ -13,6 +15,19 @@ from . import schemas
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="MapLab - Comparador de precios")
+
+
+# --- SOLO PARA DEBUG LOCAL: muestra el error real en vez de "Internal Server Error" ---
+# Imprime la traza completa en la terminal donde corre uvicorn Y la manda en la
+# respuesta, para poder verla en el expander del frontend. Quitar antes de producción:
+# expone detalles internos (nombres de tablas, rutas de archivos, etc.) a cualquiera.
+@app.exception_handler(Exception)
+async def manejador_debug(request: Request, exc: Exception):
+    traceback.print_exc()
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"{type(exc).__name__}: {exc}"},
+    )
 
 
 # --- Dependencia: una sesión de DB por request, que se cierra sola al terminar ---
